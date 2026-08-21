@@ -1242,6 +1242,58 @@
 		0 15px 45px 0 var(--color--black-alpha-400), 0 5px 10px 0 var(--color--black-alpha-200);
 }
 
+// Color-vision-accessible status palette.
+//
+// Success moves from green to blue; danger stays red so error text keeps its
+// existing contrast guarantees. The point is not the hue swap on its own -
+// simulated against protanopia, deuteranopia and tritanopia, blue/red separates
+// no better than green/red does. What it buys is luminance: green-600 and
+// red-600 sit at a 1.48:1 luminance ratio, so once hue perception is reduced
+// there is almost no signal left. blue-800 against red-600 is 1.85:1, and
+// blue-800 also lifts success text from 3.2:1 to 8.8:1 on white, which the
+// green ramp never met for normal text.
+//
+// Tints map to the equivalent lightness step on the blue ramp so surfaces keep
+// their visual weight. The execution card stripe is the one deliberate
+// exception: it is 4px of color carrying the whole signal, so it gets a
+// stronger step on both sides.
+@mixin theme-color-vision-accessible {
+	--color--success--shade-1: var(--color--blue-900);
+	--color--success: var(--color--blue-800);
+	--color--success--tint-1: var(--color--blue-300);
+	--color--success--tint-2: var(--color--blue-200);
+	--color--success--tint-3: var(--color--blue-100);
+	--color--success--tint-4: var(--color--blue-50);
+
+	--background--success: var(--color--blue-50);
+	--border-color--success: var(--color--blue-200);
+	--text-color--success: var(--color--blue-800);
+	--icon-color--success: var(--color--blue-800);
+
+	--execution-card--border-color--success: var(--color--blue-600);
+	--execution-card--border-color--error: var(--color--red-400);
+}
+
+@mixin theme-color-vision-accessible-dark {
+	--color--success--shade-1: var(--color--blue-200);
+	--color--success: var(--color--blue-300);
+	--color--success--tint-1: var(--color--blue-400);
+	--color--success--tint-2: var(--color--blue-800);
+	--color--success--tint-3: var(--color--blue-900);
+	--color--success--tint-4: var(--color--blue-950);
+
+	--background--success: var(--color--blue-950);
+	--border-color--success: var(--color--blue-800);
+	--text-color--success: var(--color--blue-50);
+	--icon-color--success: var(--color--blue-50);
+
+	// blue-300 rather than the blue-400 used for tint-1: against red-400 it is
+	// 1.59:1 on luminance, where blue-400 collapses to 1.09:1 - worse than the
+	// green/red stripe it replaces.
+	--execution-card--border-color--success: var(--color--blue-300);
+	--execution-card--border-color--error: var(--color--red-400);
+}
+
 :root {
 	color-scheme: light dark;
 	@include theme;
@@ -1264,5 +1316,22 @@ body:not([data-theme]) {
 @media (prefers-color-scheme: dark) {
 	body:not([data-theme]) {
 		@include theme-dark;
+	}
+}
+
+// Must follow the theme blocks: [data-color-vision] and [data-theme] have equal
+// specificity, so source order is what lets the palette win. The paired
+// selectors below are (0,2,x) and so beat both.
+[data-color-vision='accessible'] {
+	@include theme-color-vision-accessible;
+}
+
+[data-theme='dark'][data-color-vision='accessible'] {
+	@include theme-color-vision-accessible-dark;
+}
+
+@media (prefers-color-scheme: dark) {
+	body:not([data-theme])[data-color-vision='accessible'] {
+		@include theme-color-vision-accessible-dark;
 	}
 }
