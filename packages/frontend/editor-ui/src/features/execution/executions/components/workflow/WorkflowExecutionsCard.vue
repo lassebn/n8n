@@ -12,6 +12,7 @@ import type { PermissionsRecord } from '@n8n/permissions';
 import { useSettingsStore } from '@n8n/stores/settings.store';
 import { toDayMonth, toTime } from '@/app/utils/formatters/dateFormatter';
 import PrivateCredentialIcon from '@/features/resolvers/components/PrivateCredentialIcon.vue';
+import type { IconName } from '@n8n/design-system';
 import {
 	N8nActionDropdown,
 	N8nIcon,
@@ -59,6 +60,17 @@ const retryExecutionActions = computed(() => [
 const executionUIDetails = computed<IExecutionUIData>(() =>
 	executionHelpers.getUIDetails(props.execution),
 );
+// Shape-coded status, redundant with the border color so the card does not rely
+// on hue alone. Mirrors the dictionary in GlobalExecutionsListItem.
+const STATUS_ICONS: Record<string, IconName> = {
+	success: 'status-completed',
+	error: 'status-error',
+	waiting: 'status-waiting',
+	new: 'status-new',
+	unknown: 'status-unknown',
+};
+const statusIcon = computed<IconName | undefined>(() => STATUS_ICONS[executionUIDetails.value.name]);
+
 const isActive = computed(() => props.execution.id === route.params.executionId);
 const isRetriable = computed(() => executionHelpers.isExecutionRetriable(props.execution));
 
@@ -110,6 +122,14 @@ function onRetryMenuItemSelect(action: string): void {
 						v-if="executionUIDetails.name === 'running'"
 						size="small"
 						:class="[$style.spinner, 'mr-4xs']"
+					/>
+					<N8nIcon
+						v-else-if="statusIcon"
+						:icon="statusIcon"
+						size="small"
+						:class="[$style.statusIcon, 'mr-4xs']"
+						aria-hidden="true"
+						data-test-id="execution-card-status-icon"
 					/>
 					<N8nText :class="$style.statusLabel" size="small">{{ executionUIDetails.label }}</N8nText>
 					{{ ' ' }}
@@ -243,6 +263,9 @@ function onRetryMenuItemSelect(action: string): void {
 			border-left: var(--spacing--4xs) var(--border-style)
 				var(--execution-card--border-color--success);
 		}
+		.statusIcon {
+			color: var(--color--success);
+		}
 	}
 
 	&.new {
@@ -251,7 +274,8 @@ function onRetryMenuItemSelect(action: string): void {
 			border-left: var(--spacing--4xs) var(--border-style)
 				var(--execution-card--border-color--waiting);
 		}
-		.statusLabel {
+		.statusLabel,
+		.statusIcon {
 			color: var(--execution-card--color--text--waiting);
 		}
 	}
@@ -262,7 +286,8 @@ function onRetryMenuItemSelect(action: string): void {
 			border-left: var(--spacing--4xs) var(--border-style)
 				var(--execution-card--border-color--waiting);
 		}
-		.statusLabel {
+		.statusLabel,
+		.statusIcon {
 			color: var(--color--secondary);
 		}
 	}
@@ -273,7 +298,8 @@ function onRetryMenuItemSelect(action: string): void {
 			border-left: var(--spacing--4xs) var(--border-style)
 				var(--execution-card--border-color--error);
 		}
-		.statusLabel {
+		.statusLabel,
+		.statusIcon {
 			color: var(--color--danger);
 		}
 	}
@@ -284,6 +310,15 @@ function onRetryMenuItemSelect(action: string): void {
 			border-left: var(--spacing--4xs) var(--border-style)
 				var(--execution-card--border-color--unknown);
 		}
+		.statusIcon {
+			color: var(--color--text--tint-1);
+		}
+	}
+
+	.statusIcon {
+		flex-shrink: 0;
+		position: relative;
+		top: 1px;
 	}
 
 	.annotation {

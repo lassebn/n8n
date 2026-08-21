@@ -180,6 +180,32 @@ describe('WorkflowExecutionsCard', () => {
 		expect(executionTimeElement.textContent).toBe('27 Sep - Starting soon');
 	});
 
+	test.each([
+		['success', true],
+		['error', true],
+		['waiting', true],
+		['unknown', true],
+		['running', false],
+	])('renders a status icon for %s executions: %s', (status, shouldRenderIcon) => {
+		const props: ComponentProps<typeof WorkflowExecutionsCard> = {
+			execution: {
+				id: '1',
+				mode: 'manual',
+				status,
+				createdAt: new Date('2024-09-27T12:00:00Z').toISOString(),
+			} as unknown as ExecutionSummary,
+			workflowPermissions: { execute: true },
+		};
+
+		const { queryByTestId } = renderComponent({ props });
+
+		if (shouldRenderIcon) {
+			expect(queryByTestId('execution-card-status-icon')).toBeVisible();
+		} else {
+			expect(queryByTestId('execution-card-status-icon')).toBe(null);
+		}
+	});
+
 	afterEach(() => {
 		vitest.useRealTimers();
 	});
