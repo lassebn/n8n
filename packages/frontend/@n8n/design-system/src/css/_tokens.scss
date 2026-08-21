@@ -343,8 +343,8 @@
 
 	// Execution
 	--execution-card--border-color--new: var(--color--neutral-250);
-	--execution-card--border-color--success: var(--color--green-300);
-	--execution-card--border-color--error: var(--color--red-300);
+	--execution-card--border-color--success: var(--color--success--tint-1);
+	--execution-card--border-color--error: var(--color--danger--tint-2);
 	--execution-card--border-color--waiting: var(--color--purple-300);
 	--execution-card--border-color--running: var(--color--gold-200);
 	--execution-card--border-color--unknown: var(--color--neutral-200);
