@@ -1,5 +1,5 @@
 import { createPinia } from 'pinia';
-import { waitFor } from '@testing-library/vue';
+import { waitFor, within } from '@testing-library/vue';
 import { waitAllPromises, getTooltip, hoverTooltipTrigger } from '@/__tests__/utils';
 import SettingsPersonalView from './SettingsPersonalView.vue';
 import { useSettingsStore } from '@n8n/stores/settings.store';
@@ -84,10 +84,10 @@ describe('SettingsPersonalView', () => {
 		});
 
 		it('should enable save button when theme is changed', async () => {
-			const { getByTestId, getByPlaceholderText, findByText } = renderComponent({ pinia });
+			const { getByTestId, findByText } = renderComponent({ pinia });
 			await waitAllPromises();
 
-			getByPlaceholderText('Select').click();
+			within(getByTestId('theme-select')).getByPlaceholderText('Select').click();
 			const darkThemeOption = await findByText('Dark theme');
 			darkThemeOption.click();
 
@@ -96,10 +96,10 @@ describe('SettingsPersonalView', () => {
 		});
 
 		it('should not update theme after changing the selected theme', async () => {
-			const { getByPlaceholderText, findByText } = renderComponent({ pinia });
+			const { getByTestId, findByText } = renderComponent({ pinia });
 			await waitAllPromises();
 
-			getByPlaceholderText('Select').click();
+			within(getByTestId('theme-select')).getByPlaceholderText('Select').click();
 			const darkThemeOption = await findByText('Dark theme');
 			darkThemeOption.click();
 
@@ -111,10 +111,10 @@ describe('SettingsPersonalView', () => {
 			vi.spyOn(usersStore, 'updateUser').mockReturnValue(
 				Promise.resolve({ id: '123', isPending: false }),
 			);
-			const { getByPlaceholderText, findByText, getByTestId } = renderComponent({ pinia });
+			const { getByTestId, findByText } = renderComponent({ pinia });
 			await waitAllPromises();
 
-			getByPlaceholderText('Select').click();
+			within(getByTestId('theme-select')).getByPlaceholderText('Select').click();
 			const darkThemeOption = await findByText('Dark theme');
 			darkThemeOption.click();
 
@@ -125,6 +125,37 @@ describe('SettingsPersonalView', () => {
 			await waitAllPromises();
 
 			expect(uiStore.theme).toBe('dark');
+		});
+
+		it('should not update the status palette before saving', async () => {
+			const { getByTestId, findByText } = renderComponent({ pinia });
+			await waitAllPromises();
+
+			within(getByTestId('color-vision-select')).getByPlaceholderText('Select').click();
+			(await findByText('Blue and red (accessible)')).click();
+
+			await waitAllPromises();
+			expect(uiStore.colorVision).toBe('default');
+		});
+
+		it('should commit the status palette change after clicking save', async () => {
+			vi.spyOn(usersStore, 'updateUser').mockReturnValue(
+				Promise.resolve({ id: '123', isPending: false }),
+			);
+			const { getByTestId, findByText } = renderComponent({ pinia });
+			await waitAllPromises();
+
+			within(getByTestId('color-vision-select')).getByPlaceholderText('Select').click();
+			(await findByText('Blue and red (accessible)')).click();
+
+			await waitAllPromises();
+
+			getByTestId('save-settings-button').click();
+
+			await waitAllPromises();
+
+			expect(uiStore.colorVision).toBe('accessible');
+			expect(document.body.getAttribute('data-color-vision')).toBe('accessible');
 		});
 	});
 

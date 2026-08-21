@@ -4,7 +4,7 @@ import { ROLE, type Role } from '@n8n/api-types';
 import { useI18n } from '@n8n/i18n';
 import { useToast } from '@n8n/composables/useToast';
 import { useDocumentTitle } from '@/app/composables/useDocumentTitle';
-import type { IFormInputs, ThemeOption } from '@/Interface';
+import type { ColorVisionOption, IFormInputs, ThemeOption } from '@/Interface';
 import type { IUser } from '@n8n/rest-api-client/api/users';
 import { MFA_DOCS_URL } from '@/app/constants';
 import {
@@ -81,6 +81,17 @@ const themeOptions = ref<Array<{ name: ThemeOption; label: BaseTextKey }>>([
 		label: 'settings.personal.theme.dark',
 	},
 ]);
+const currentSelectedColorVision = ref(useUIStore().colorVision);
+const colorVisionOptions = ref<Array<{ name: ColorVisionOption; label: BaseTextKey }>>([
+	{
+		name: 'default',
+		label: 'settings.personal.colorVision.default',
+	},
+	{
+		name: 'accessible',
+		label: 'settings.personal.colorVision.accessible',
+	},
+]);
 
 const uiStore = useUIStore();
 const usersStore = useUsersStore();
@@ -137,7 +148,10 @@ const isSecuritySectionVisible = computed((): boolean => {
 });
 
 const hasAnyPersonalisationChanges = computed((): boolean => {
-	return currentSelectedTheme.value !== uiStore.theme;
+	return (
+		currentSelectedTheme.value !== uiStore.theme ||
+		currentSelectedColorVision.value !== uiStore.colorVision
+	);
 });
 
 const hasAnyChanges = computed(() => {
@@ -312,6 +326,7 @@ async function updatePersonalisationSettings() {
 	}
 
 	uiStore.setTheme(currentSelectedTheme.value);
+	uiStore.setColorVision(currentSelectedColorVision.value);
 }
 
 function onSaveClick() {
@@ -482,6 +497,27 @@ onBeforeUnmount(() => {
 					>
 						<N8nOption
 							v-for="item in themeOptions"
+							:key="item.name"
+							:label="i18n.baseText(item.label)"
+							:value="item.name"
+						>
+						</N8nOption>
+					</N8nSelect>
+				</N8nInputLabel>
+			</div>
+			<div class="mt-l">
+				<N8nInputLabel
+					:label="i18n.baseText('settings.personal.colorVision')"
+					:tooltip-text="i18n.baseText('settings.personal.colorVision.tooltip')"
+				>
+					<N8nSelect
+						v-model="currentSelectedColorVision"
+						:class="$style.themeSelect"
+						data-test-id="color-vision-select"
+						size="small"
+					>
+						<N8nOption
+							v-for="item in colorVisionOptions"
 							:key="item.name"
 							:label="i18n.baseText(item.label)"
 							:value="item.name"
