@@ -25,7 +25,15 @@ import { useWorkflowHistoryStore } from '@/features/workflows/workflowHistory/wo
 import { useAddExecutionToDataset } from '@/features/ai/evaluation.ee/composables/useAddExecutionToDataset';
 
 import { ElDropdown, ElDropdownItem, ElDropdownMenu } from 'element-plus';
-import { N8nButton, N8nIconButton, N8nSpinner, N8nText, N8nTooltip } from '@n8n/design-system';
+import type { IconName } from '@n8n/design-system';
+import {
+	N8nButton,
+	N8nIcon,
+	N8nIconButton,
+	N8nSpinner,
+	N8nText,
+	N8nTooltip,
+} from '@n8n/design-system';
 import VoteButtons from './VoteButtons.vue';
 
 type RetryDropdownRef = InstanceType<typeof ElDropdown>;
@@ -57,8 +65,21 @@ const workflowPermissions = computed(
 );
 const executionId = computed(() => route.params.executionId as string);
 const nodeId = computed(() => route.params.nodeId as string);
+// Shape-coded status, redundant with the color of the label beside it. Same
+// dictionary as the sidebar card and the global executions list.
+const STATUS_ICONS: Record<string, IconName> = {
+	success: 'status-completed',
+	error: 'status-error',
+	waiting: 'status-waiting',
+	new: 'status-new',
+	unknown: 'status-unknown',
+};
+
 const executionUIDetails = computed<IExecutionUIData | null>(() =>
 	props.execution ? executionHelpers.getUIDetails(props.execution) : null,
+);
+const statusIcon = computed<IconName | undefined>(() =>
+	executionUIDetails.value ? STATUS_ICONS[executionUIDetails.value.name] : undefined,
 );
 const debugButtonData = computed(() =>
 	props.execution?.status === 'success'
@@ -311,6 +332,14 @@ const onVoteClick = async (voteValue: AnnotationVote) => {
 						size="small"
 						:class="[$style.spinner, 'mr-4xs']"
 					/>
+					<N8nIcon
+						v-else-if="statusIcon"
+						:icon="statusIcon"
+						size="medium"
+						:class="[$style.statusIcon, $style[executionUIDetails.name], 'mr-4xs']"
+						aria-hidden="true"
+						data-test-id="execution-preview-status-icon"
+					/>
 					<N8nText
 						size="medium"
 						:class="[$style.status, $style[executionUIDetails.name]]"
@@ -529,6 +558,12 @@ const onVoteClick = async (voteValue: AnnotationVote) => {
 		height: 30px;
 		border-width: 2px;
 	}
+}
+
+.statusIcon {
+	flex-shrink: 0;
+	position: relative;
+	top: 1px;
 }
 
 .running,

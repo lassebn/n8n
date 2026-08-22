@@ -152,6 +152,24 @@ describe('WorkflowExecutionsPreview.vue', () => {
 		},
 	);
 
+	test.each([
+		['success', true],
+		['error', true],
+		['crashed', true],
+		['waiting', true],
+		['running', false],
+	])('renders a status icon beside the %s label: %s', (status, shouldRenderIcon) => {
+		const { queryByTestId } = renderComponent({
+			props: { execution: { ...executionData, status } as ExecutionSummary },
+		});
+
+		if (shouldRenderIcon) {
+			expect(queryByTestId('execution-preview-status-icon')).toBeInTheDocument();
+		} else {
+			expect(queryByTestId('execution-preview-status-icon')).not.toBeInTheDocument();
+		}
+	});
+
 	it('disables the stop execution button when the user cannot update', () => {
 		const { getByTestId } = renderComponent({
 			props: { execution: { ...executionData, status: 'running' } },
