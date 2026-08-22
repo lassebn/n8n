@@ -1270,8 +1270,12 @@
 	--text-color--success: var(--color--blue-800);
 	--icon-color--success: var(--color--blue-800);
 
-	--execution-card--border-color--success: var(--color--blue-600);
-	--execution-card--border-color--error: var(--color--red-400);
+	// Chosen against every other stripe on the card, not just each other:
+	// blue-700/red-600 is 0.321 apart, and blue-700 clears the waiting purple by
+	// 0.290 where blue-600 manages only 0.245. Both read on a white card
+	// (6.8:1 and 4.8:1).
+	--execution-card--border-color--success: var(--color--blue-700);
+	--execution-card--border-color--error: var(--color--red-600);
 }
 
 @mixin theme-color-vision-accessible-dark {
@@ -1287,11 +1291,12 @@
 	--text-color--success: var(--color--blue-50);
 	--icon-color--success: var(--color--blue-50);
 
-	// blue-300 rather than the blue-400 used for tint-1: against red-400 it is
-	// 1.59:1 on luminance, where blue-400 collapses to 1.09:1 - worse than the
-	// green/red stripe it replaces.
-	--execution-card--border-color--success: var(--color--blue-300);
-	--execution-card--border-color--error: var(--color--red-400);
+	// Lighter than the light-theme pair because the card ground is dark. Not
+	// blue-300, which is what --color--success uses here: against the waiting
+	// purple blue-300 is 0.007 apart - the same color to a deuteranope.
+	// blue-500/red-600 is 0.333 apart and both read on a dark card.
+	--execution-card--border-color--success: var(--color--blue-500);
+	--execution-card--border-color--error: var(--color--red-600);
 }
 
 :root {
