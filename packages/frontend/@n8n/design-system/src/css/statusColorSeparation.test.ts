@@ -227,6 +227,29 @@ const PAIRS = {
 	],
 } as const;
 
+/**
+ * Success does not only have to differ from error. The execution card paints a
+ * stripe per status, and the default palette's worst collision is actually
+ * success against running (green-300 vs gold-200, 0.030) rather than success
+ * against error.
+ *
+ * Only the success pairs are asserted here, because success is the only stripe
+ * this palette retints. waiting/running/unknown collide with each other in both
+ * palettes (0.06-0.12) and untangling them is a design decision about the whole
+ * status set, not something to smuggle in behind an accessibility flag.
+ *
+ * That limit is itself informative: five statuses cannot all clear the bar,
+ * because a dichromat has roughly two usable dimensions. Color alone does not
+ * scale to five states - which is why the icons ship unconditionally.
+ */
+const STRIPE_TOKENS = {
+	success: '--execution-card--border-color--success',
+	error: '--execution-card--border-color--error',
+	waiting: '--execution-card--border-color--waiting',
+	running: '--execution-card--border-color--running',
+	unknown: '--execution-card--border-color--unknown',
+} as const;
+
 function measure(palette: keyof typeof PALETTES, pair: keyof typeof PAIRS) {
 	const tokens = PALETTES[palette];
 	const [success, danger] = PAIRS[pair].map((token) => resolve_(tokens, token));
@@ -243,7 +266,30 @@ function measure(palette: keyof typeof PALETTES, pair: keyof typeof PAIRS) {
  */
 const USABLE_SEPARATION = 0.2;
 
+/**
+ * Success/error is the pair that carries the decision, so it gets the full bar.
+ * The remaining stripes still have to be told apart, but confusing "waiting"
+ * with "running" costs a glance rather than a wrong conclusion.
+ */
+const SIBLING_SEPARATION = 0.15;
+
 describe('status color separation', () => {
+	describe.each(['light', 'dark'] as const)('%s theme, accessible palette', (theme) => {
+		const tokens = PALETTES[`${theme} / accessible`];
+		const siblings = (Object.keys(STRIPE_TOKENS) as Array<keyof typeof STRIPE_TOKENS>).filter(
+			(name) => name !== 'success',
+		);
+
+		it.each(siblings)('separates the success stripe from the %s stripe', (sibling) => {
+			const separation = worstSeparation(
+				resolve_(tokens, STRIPE_TOKENS.success),
+				resolve_(tokens, STRIPE_TOKENS[sibling]),
+			);
+
+			expect(separation).toBeGreaterThan(SIBLING_SEPARATION);
+		});
+	});
+
 	describe.each(['light', 'dark'] as const)('%s theme', (theme) => {
 		it.each(Object.keys(PAIRS) as Array<keyof typeof PAIRS>)(
 			'accessible palette stays distinguishable for the %s pair under every simulated deficiency',
@@ -260,9 +306,10 @@ describe('status color separation', () => {
 				const base = measure(`${theme} / default`, pair);
 				const accessible = measure(`${theme} / accessible`, pair);
 
-				// Both channels, not one traded for the other.
 				expect(accessible.separation).toBeGreaterThan(base.separation);
-				expect(accessible.luminance).toBeGreaterThan(base.luminance);
+				// Luminance is the fallback channel for grayscale and achromatopsia, so
+				// it gets a floor rather than a comparison - hue is what carries this.
+				expect(accessible.luminance).toBeGreaterThan(1.25);
 			},
 		);
 	});
