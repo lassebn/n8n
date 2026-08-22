@@ -7,16 +7,18 @@ import { compileString } from 'sass';
  * separate. The `accessible` palette exists to give those two states a second,
  * non-hue channel to differ on.
  *
- * The trap this guards against: swapping green for blue *feels* like the fix,
- * but simulated against dichromacy it buys almost nothing on its own — today's
- * green/red and a naive blue/red score within 0.001 of each other. What
- * actually helps is luminance separation. So the assertions below are
- * relative: the accessible palette must beat the default on the luminance
- * channel, without giving up ground on the hue channel.
+ * The model matters more than it looks. Vienot, Brettel & Mollon (1999) is a
+ * dichromat projection, and for saturated green-vs-red it reports a large
+ * difference that anomalous trichromats do not actually get - it projects the
+ * two colors to opposite ends of the surviving axis. Using it here produced the
+ * wrong conclusion: that swapping green for blue buys nothing.
  *
- * Simulation is Vienot, Brettel & Mollon (1999) applied to linear sRGB, plus a
- * partial-severity mix to approximate anomalous trichromacy, which is what most
- * people described as "red-green colorblind" actually have.
+ * Machado, Oliveira & Fernandes (2009) is severity-parameterised and models
+ * anomalous trichromacy directly, which is what most people described as
+ * red-green colorblind actually have. Under it, n8n's default green/red status
+ * pair collapses to dOKLab 0.047-0.13 depending on severity - indistinguishable
+ * - while blue/red holds at ~0.36 across every severity. That is the whole
+ * justification for the accessible palette, so it is what these tests assert.
  */
 
 const cssDir = resolve(process.cwd(), 'src/css');
@@ -54,32 +56,47 @@ function linearToOklab([r, g, b]: Vec): Vec {
 	];
 }
 
+/** Machado et al. (2009), linear-RGB matrices at four severities. */
 const SIMULATIONS: Record<string, [Vec, Vec, Vec]> = {
-	protanopia: [
-		[0, 1.05118294, -0.05116099],
-		[0, 1, 0],
-		[0, 0, 1],
+	'deuteranomaly-0.4': [
+		[0.632009, 0.480635, -0.112644],
+		[0.144296, 0.81965, 0.036054],
+		[-0.006494, 0.019067, 0.987427],
 	],
-	deuteranopia: [
-		[1, 0, 0],
-		[0.9513092, 0, 0.04866992],
-		[0, 0, 1],
+	'deuteranomaly-0.6': [
+		[0.547494, 0.607765, -0.155259],
+		[0.181692, 0.781742, 0.036566],
+		[-0.01041, 0.027275, 0.983136],
 	],
-	tritanopia: [
-		[1, 0, 0],
-		[0, 1, 0],
-		[-0.86744736, 1.86727089, 0],
+	'deuteranomaly-1.0': [
+		[0.367322, 0.860646, -0.227968],
+		[0.280085, 0.672501, 0.047413],
+		[-0.01182, 0.04294, 0.968881],
+	],
+	'protanomaly-0.4': [
+		[0.575181, 0.526296, -0.101477],
+		[0.071432, 0.880143, 0.048425],
+		[-0.006724, 0.007204, 0.99952],
+	],
+	'protanomaly-0.6': [
+		[0.38545, 0.769005, -0.154455],
+		[0.100526, 0.829802, 0.069673],
+		[-0.00795, -0.017991, 1.025941],
+	],
+	'protanomaly-1.0': [
+		[0.152286, 1.052583, -0.204868],
+		[0.114503, 0.786281, 0.099216],
+		[-0.003882, -0.048116, 1.051998],
+	],
+	tritanomaly: [
+		[1.255528, -0.076749, -0.178779],
+		[-0.078411, 0.930809, 0.147602],
+		[0.004733, 0.691367, 0.3039],
 	],
 };
 
 const applyMatrix = (m: [Vec, Vec, Vec], v: Vec): Vec =>
 	m.map((row) => row.reduce((sum, k, i) => sum + k * v[i], 0)) as Vec;
-
-/** Anomalous trichromacy sits between normal vision and the dichromat pole. */
-const partial = (m: [Vec, Vec, Vec], v: Vec, severity: number): Vec => {
-	const full = applyMatrix(m, v);
-	return v.map((x, i) => x * (1 - severity) + full[i] * severity) as Vec;
-};
 
 const deltaOklab = (a: Vec, b: Vec) => {
 	const [x, y] = [linearToOklab(a.map(clamp) as Vec), linearToOklab(b.map(clamp) as Vec)];
@@ -95,11 +112,10 @@ const contrastRatio = (a: Vec, b: Vec) => {
 };
 
 /** Worst case across every deficiency we simulate, including normal vision. */
-function worstHueSeparation(a: Vec, b: Vec) {
+function worstSeparation(a: Vec, b: Vec) {
 	const scores = [deltaOklab(a, b)];
 	for (const m of Object.values(SIMULATIONS)) {
 		scores.push(deltaOklab(applyMatrix(m, a), applyMatrix(m, b)));
-		scores.push(deltaOklab(partial(m, a, 0.6), partial(m, b, 0.6)));
 	}
 	return Math.min(...scores);
 }
@@ -214,29 +230,39 @@ const PAIRS = {
 function measure(palette: keyof typeof PALETTES, pair: keyof typeof PAIRS) {
 	const tokens = PALETTES[palette];
 	const [success, danger] = PAIRS[pair].map((token) => resolve_(tokens, token));
-	return { hue: worstHueSeparation(success, danger), luminance: contrastRatio(success, danger) };
+	return {
+		separation: worstSeparation(success, danger),
+		luminance: contrastRatio(success, danger),
+	};
 }
+
+/**
+ * 0.20 dOKLab is the floor for "two small shapes read as different colors".
+ * The default palette sits well under it for every red-green deficiency, which
+ * is the bug; the accessible palette must clear it.
+ */
+const USABLE_SEPARATION = 0.2;
 
 describe('status color separation', () => {
 	describe.each(['light', 'dark'] as const)('%s theme', (theme) => {
 		it.each(Object.keys(PAIRS) as Array<keyof typeof PAIRS>)(
-			'accessible palette widens the luminance gap for the %s pair',
+			'accessible palette stays distinguishable for the %s pair under every simulated deficiency',
 			(pair) => {
-				const base = measure(`${theme} / default`, pair);
 				const accessible = measure(`${theme} / accessible`, pair);
 
-				expect(accessible.luminance).toBeGreaterThan(base.luminance);
+				expect(accessible.separation).toBeGreaterThan(USABLE_SEPARATION);
 			},
 		);
 
 		it.each(Object.keys(PAIRS) as Array<keyof typeof PAIRS>)(
-			'accessible palette holds its ground on hue for the %s pair',
+			'accessible palette beats the default it replaces for the %s pair',
 			(pair) => {
 				const base = measure(`${theme} / default`, pair);
 				const accessible = measure(`${theme} / accessible`, pair);
 
-				// Trading a little hue for luminance is the design; collapsing hue is not.
-				expect(accessible.hue).toBeGreaterThan(base.hue - 0.03);
+				// Both channels, not one traded for the other.
+				expect(accessible.separation).toBeGreaterThan(base.separation);
+				expect(accessible.luminance).toBeGreaterThan(base.luminance);
 			},
 		);
 	});
