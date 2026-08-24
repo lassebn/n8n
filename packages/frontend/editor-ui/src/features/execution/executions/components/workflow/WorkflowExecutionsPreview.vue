@@ -3,7 +3,7 @@ import WorkflowExecutionAnnotationPanel from './WorkflowExecutionAnnotationPanel
 import WorkflowExecutionAnnotationTags from './WorkflowExecutionAnnotationTags.ee.vue';
 import ExecutionPreviewHost from './ExecutionPreviewHost.vue';
 import { useExecutionDebugging } from '../../composables/useExecutionDebugging';
-import type { IExecutionUIData } from '../../composables/useExecutionHelpers';
+import { EXECUTION_STATUS_ICONS, type IExecutionUIData } from '../../composables/useExecutionHelpers';
 import { useExecutionHelpers } from '../../composables/useExecutionHelpers';
 import type { WorkflowVersion } from '@n8n/rest-api-client/api/workflowHistory';
 import { useI18n } from '@n8n/i18n';
@@ -65,21 +65,11 @@ const workflowPermissions = computed(
 );
 const executionId = computed(() => route.params.executionId as string);
 const nodeId = computed(() => route.params.nodeId as string);
-// Shape-coded status, redundant with the color of the label beside it. Same
-// dictionary as the sidebar card and the global executions list.
-const STATUS_ICONS: Record<string, IconName> = {
-	success: 'status-completed',
-	error: 'status-error',
-	waiting: 'status-waiting',
-	new: 'status-new',
-	unknown: 'status-unknown',
-};
-
 const executionUIDetails = computed<IExecutionUIData | null>(() =>
 	props.execution ? executionHelpers.getUIDetails(props.execution) : null,
 );
 const statusIcon = computed<IconName | undefined>(() =>
-	executionUIDetails.value ? STATUS_ICONS[executionUIDetails.value.name] : undefined,
+	executionUIDetails.value ? EXECUTION_STATUS_ICONS[executionUIDetails.value.name] : undefined,
 );
 const debugButtonData = computed(() =>
 	props.execution?.status === 'success'
@@ -571,7 +561,8 @@ const onVoteClick = async (voteValue: AnnotationVote) => {
 	color: var(--color--warning);
 }
 
-.waiting {
+.waiting,
+.new {
 	color: var(--color--secondary);
 }
 
@@ -581,6 +572,10 @@ const onVoteClick = async (voteValue: AnnotationVote) => {
 
 .error {
 	color: var(--color--danger);
+}
+
+.unknown {
+	color: var(--color--text--tint-1);
 }
 
 .newInfo,

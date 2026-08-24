@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import type { IExecutionUIData } from '../../composables/useExecutionHelpers';
+import { EXECUTION_STATUS_ICONS, type IExecutionUIData } from '../../composables/useExecutionHelpers';
 import { EnterpriseEditionFeature, VIEWS } from '@/app/constants';
 import { useInjectWorkflowId } from '@/app/composables/useInjectWorkflowId';
 import ExecutionsTime from '../ExecutionsTime.vue';
@@ -60,16 +60,9 @@ const retryExecutionActions = computed(() => [
 const executionUIDetails = computed<IExecutionUIData>(() =>
 	executionHelpers.getUIDetails(props.execution),
 );
-// Shape-coded status, redundant with the border color so the card does not rely
-// on hue alone. Mirrors the dictionary in GlobalExecutionsListItem.
-const STATUS_ICONS: Record<string, IconName> = {
-	success: 'status-completed',
-	error: 'status-error',
-	waiting: 'status-waiting',
-	new: 'status-new',
-	unknown: 'status-unknown',
-};
-const statusIcon = computed<IconName | undefined>(() => STATUS_ICONS[executionUIDetails.value.name]);
+const statusIcon = computed<IconName | undefined>(
+	() => EXECUTION_STATUS_ICONS[executionUIDetails.value.name],
+);
 
 const isActive = computed(() => props.execution.id === route.params.executionId);
 const isRetriable = computed(() => executionHelpers.isExecutionRetriable(props.execution));
