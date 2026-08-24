@@ -343,8 +343,7 @@
 
 	// Execution
 	--execution-card--border-color--new: var(--color--neutral-250);
-	// Shared with the canvas edge stroke (CanvasEdge.vue) - see the accessible
-	// mixins below for why these two dropped the "card" prefix.
+	// Shared with the canvas edge stroke (CanvasEdge.vue).
 	--execution-status--color--success: var(--color--success--tint-1);
 	--execution-card--border-color--error: var(--color--danger--tint-2);
 	--execution-status--color--secondary: var(--color--purple-300);
@@ -1244,21 +1243,8 @@
 		0 15px 45px 0 var(--color--black-alpha-400), 0 5px 10px 0 var(--color--black-alpha-200);
 }
 
-// Color-vision-accessible status palette.
-//
-// Success moves from green to blue; danger stays red so error text keeps its
-// existing contrast guarantees. The point is not the hue swap on its own -
-// simulated against protanopia, deuteranopia and tritanopia, blue/red separates
-// no better than green/red does. What it buys is luminance: green-600 and
-// red-600 sit at a 1.48:1 luminance ratio, so once hue perception is reduced
-// there is almost no signal left. blue-800 against red-600 is 1.85:1, and
-// blue-800 also lifts success text from 3.2:1 to 8.8:1 on white, which the
-// green ramp never met for normal text.
-//
-// Tints map to the equivalent lightness step on the blue ramp so surfaces keep
-// their visual weight. The execution card stripe is the one deliberate
-// exception: it is 4px of color carrying the whole signal, so it gets a
-// stronger step on both sides.
+// Color-vision-accessible status palette: success moves from green to blue,
+// danger stays red. Measurements and rationale: statusColorSeparation.test.ts.
 @mixin theme-color-vision-accessible {
 	--color--success--shade-1: var(--color--blue-900);
 	--color--success: var(--color--blue-800);
@@ -1272,13 +1258,7 @@
 	--text-color--success: var(--color--blue-800);
 	--icon-color--success: var(--color--blue-800);
 
-	// Shared by two surfaces, not card-specific: the execution card's colored
-	// accents (error/waiting/running/unknown stay card-scoped - see
-	// _tokens.scss below) and the canvas edge stroke (CanvasEdge.vue). Chosen
-	// against every other stripe on the card, not just each other: blue-700/
-	// red-600 is 0.321 apart, and blue-700 clears --execution-status--color--
-	// secondary by 0.290 where blue-600 manages only 0.245. Both read on a
-	// white card (6.8:1 and 4.8:1).
+	// Shared with the canvas edge stroke (CanvasEdge.vue), not card-specific.
 	--execution-status--color--success: var(--color--blue-700);
 	--execution-card--border-color--error: var(--color--red-600);
 }
@@ -1296,11 +1276,7 @@
 	--text-color--success: var(--color--blue-50);
 	--icon-color--success: var(--color--blue-50);
 
-	// Lighter than the light-theme pair because the card ground is dark. Not
-	// blue-300, which is what --color--success uses here: against
-	// --execution-status--color--secondary blue-300 is 0.007 apart - the same
-	// color to a deuteranope. blue-500/red-600 is 0.333 apart and both read on
-	// a dark card.
+	// Lighter than the light-theme pair since the card ground is dark.
 	--execution-status--color--success: var(--color--blue-500);
 	--execution-card--border-color--error: var(--color--red-600);
 }

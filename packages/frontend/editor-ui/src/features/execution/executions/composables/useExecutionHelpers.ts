@@ -17,15 +17,7 @@ export interface IExecutionUIData {
 	tags: Array<{ id: string; name: string }>;
 }
 
-/**
- * Shape-coded status, redundant with color so the sidebar card and preview
- * header don't rely on hue alone. Keyed on IExecutionUIData['name']; 'running'
- * is deliberately absent because both call sites show the spinner for it
- * instead. Mirrors (but doesn't share type shape with) the dictionary in
- * GlobalExecutionsListItem.vue, which also carries per-status color and a
- * 'canceled' entry — getUIDetails() collapses 'canceled' into 'unknown'
- * before this is consulted, so it doesn't need one.
- */
+/** Keyed on IExecutionUIData['name']; 'running' shows a spinner instead. */
 export const EXECUTION_STATUS_ICONS: Record<string, IconName> = {
 	success: 'status-completed',
 	error: 'status-error',

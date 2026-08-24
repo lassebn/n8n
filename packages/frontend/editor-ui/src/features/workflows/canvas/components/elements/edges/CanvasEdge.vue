@@ -108,10 +108,7 @@ const connection = computed<Connection>(() =>
 );
 
 const edgeColor = computed(() => {
-	// Shares its accessible values with the execution card's stripe, not the
-	// generic --color--success/--color--secondary tokens: those two aren't
-	// guaranteed to separate under simulated color vision deficiency, and
-	// weren't - see statusColorSeparation.test.ts.
+	// Not --color--success/--color--secondary - see statusColorSeparation.test.ts.
 	if (status.value === 'success') {
 		return 'var(--execution-status--color--success)';
 	} else if (status.value === 'pinned') {

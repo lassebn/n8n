@@ -250,12 +250,8 @@ function onRetryMenuItemSelect(action: string): void {
 		}
 	}
 
-	// Success gets no colored stripe - matching how the global executions list
-	// only highlights the exception (an error background tint), leaving the
-	// expected outcome unmarked. Presence-vs-absence of a stripe is a stronger,
-	// more robust signal than any two colors, and it sidesteps needing this
-	// surface's own tuned success color at all; the icon + "Succeeded" text
-	// (--color--success, unrelated to the stripe) still carry the status.
+	// No stripe for success - the expected outcome stays unmarked, matching
+	// GlobalExecutionsListItem.vue's error-only background highlight.
 	&.success {
 		&,
 		& .executionLink {

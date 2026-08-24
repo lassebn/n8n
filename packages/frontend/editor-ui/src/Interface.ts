@@ -938,11 +938,7 @@ export type ToggleNodeCreatorOptions = {
 export type AppliedThemeOption = 'light' | 'dark';
 export type ThemeOption = AppliedThemeOption | 'system';
 
-/**
- * Status color palette. 'accessible' swaps success from green to blue and
- * widens the luminance gap between success and error, so the two do not rely
- * on red/green hue discrimination alone.
- */
+/** Status color palette shown for execution results. */
 export type ColorVisionOption = 'default' | 'accessible';
 
 export type EnterpriseEditionFeatureKey =
