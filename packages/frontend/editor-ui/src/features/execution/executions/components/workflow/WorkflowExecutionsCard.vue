@@ -250,11 +250,17 @@ function onRetryMenuItemSelect(action: string): void {
 		}
 	}
 
+	// Success gets no colored stripe - matching how the global executions list
+	// only highlights the exception (an error background tint), leaving the
+	// expected outcome unmarked. Presence-vs-absence of a stripe is a stronger,
+	// more robust signal than any two colors, and it sidesteps needing this
+	// surface's own tuned success color at all; the icon + "Succeeded" text
+	// (--color--success, unrelated to the stripe) still carry the status.
 	&.success {
 		&,
 		& .executionLink {
 			border-left: var(--spacing--4xs) var(--border-style)
-				var(--execution-card--border-color--success);
+				var(--execution-list-item--color--background);
 		}
 		.statusIcon {
 			color: var(--color--success);
@@ -265,7 +271,7 @@ function onRetryMenuItemSelect(action: string): void {
 		&,
 		& .executionLink {
 			border-left: var(--spacing--4xs) var(--border-style)
-				var(--execution-card--border-color--waiting);
+				var(--execution-status--color--secondary);
 		}
 		.statusLabel,
 		.statusIcon {
@@ -277,7 +283,7 @@ function onRetryMenuItemSelect(action: string): void {
 		&,
 		& .executionLink {
 			border-left: var(--spacing--4xs) var(--border-style)
-				var(--execution-card--border-color--waiting);
+				var(--execution-status--color--secondary);
 		}
 		.statusLabel,
 		.statusIcon {

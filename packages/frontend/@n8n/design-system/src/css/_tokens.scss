@@ -343,9 +343,11 @@
 
 	// Execution
 	--execution-card--border-color--new: var(--color--neutral-250);
-	--execution-card--border-color--success: var(--color--success--tint-1);
+	// Shared with the canvas edge stroke (CanvasEdge.vue) - see the accessible
+	// mixins below for why these two dropped the "card" prefix.
+	--execution-status--color--success: var(--color--success--tint-1);
 	--execution-card--border-color--error: var(--color--danger--tint-2);
-	--execution-card--border-color--waiting: var(--color--purple-300);
+	--execution-status--color--secondary: var(--color--purple-300);
 	--execution-card--border-color--running: var(--color--gold-200);
 	--execution-card--border-color--unknown: var(--color--neutral-200);
 	--execution-card--color--background: var(--color--foreground--tint-2);
@@ -1270,11 +1272,14 @@
 	--text-color--success: var(--color--blue-800);
 	--icon-color--success: var(--color--blue-800);
 
-	// Chosen against every other stripe on the card, not just each other:
-	// blue-700/red-600 is 0.321 apart, and blue-700 clears the waiting purple by
-	// 0.290 where blue-600 manages only 0.245. Both read on a white card
-	// (6.8:1 and 4.8:1).
-	--execution-card--border-color--success: var(--color--blue-700);
+	// Shared by two surfaces, not card-specific: the execution card's colored
+	// accents (error/waiting/running/unknown stay card-scoped - see
+	// _tokens.scss below) and the canvas edge stroke (CanvasEdge.vue). Chosen
+	// against every other stripe on the card, not just each other: blue-700/
+	// red-600 is 0.321 apart, and blue-700 clears --execution-status--color--
+	// secondary by 0.290 where blue-600 manages only 0.245. Both read on a
+	// white card (6.8:1 and 4.8:1).
+	--execution-status--color--success: var(--color--blue-700);
 	--execution-card--border-color--error: var(--color--red-600);
 }
 
@@ -1292,10 +1297,11 @@
 	--icon-color--success: var(--color--blue-50);
 
 	// Lighter than the light-theme pair because the card ground is dark. Not
-	// blue-300, which is what --color--success uses here: against the waiting
-	// purple blue-300 is 0.007 apart - the same color to a deuteranope.
-	// blue-500/red-600 is 0.333 apart and both read on a dark card.
-	--execution-card--border-color--success: var(--color--blue-500);
+	// blue-300, which is what --color--success uses here: against
+	// --execution-status--color--secondary blue-300 is 0.007 apart - the same
+	// color to a deuteranope. blue-500/red-600 is 0.333 apart and both read on
+	// a dark card.
+	--execution-status--color--success: var(--color--blue-500);
 	--execution-card--border-color--error: var(--color--red-600);
 }
 

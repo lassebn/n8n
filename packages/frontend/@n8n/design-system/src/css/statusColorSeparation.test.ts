@@ -221,34 +221,37 @@ const PALETTES = {
 
 const PAIRS = {
 	semantic: ['--color--success', '--color--danger'],
-	'execution card stripe': [
-		'--execution-card--border-color--success',
-		'--execution-card--border-color--error',
-	],
 } as const;
 
 /**
- * Success does not only have to differ from error. The execution card paints a
- * stripe per status, and the default palette's worst collision is actually
- * success against running (green-300 vs gold-200, 0.030) rather than success
- * against error.
+ * --execution-status--color--success/--secondary are shared by two surfaces:
+ * the execution card's stripe and the canvas edge stroke (CanvasEdge.vue) - a
+ * 'success' edge and a 'pinned' edge render these two colors side by side.
+ * Chosen against every other card stripe too, not just each other - see the
+ * accessible mixins in _tokens.scss.
  *
- * Only the success pairs are asserted here, because success is the only stripe
- * this palette retints. waiting/running/unknown collide with each other in both
- * palettes (0.06-0.12) and untangling them is a design decision about the whole
- * status set, not something to smuggle in behind an accessibility flag.
- *
- * That limit is itself informative: five statuses cannot all clear the bar,
- * because a dichromat has roughly two usable dimensions. Color alone does not
- * scale to five states - which is why the icons ship unconditionally.
+ * Held to the lower SIBLING_SEPARATION bar, not PAIRS' USABLE_SEPARATION:
+ * confusing "succeeded" with "used pinned test data" costs a glance, not a
+ * wrong conclusion, unlike success vs. danger.
  */
-const STRIPE_TOKENS = {
-	success: '--execution-card--border-color--success',
-	error: '--execution-card--border-color--error',
-	waiting: '--execution-card--border-color--waiting',
-	running: '--execution-card--border-color--running',
-	unknown: '--execution-card--border-color--unknown',
-} as const;
+const CANVAS_EDGE_PAIR = [
+	'--execution-status--color--success',
+	'--execution-status--color--secondary',
+] as const;
+
+/**
+ * The execution card no longer paints a stripe for success at all (it's the
+ * expected outcome, left unmarked - the same "flag only the exception"
+ * pattern the global executions list already uses for its error background).
+ * So there is no longer a five-way "does success separate from every sibling
+ * stripe" question on the card: presence vs. absence of a stripe doesn't need
+ * a color-vision check, it's the most robust signal there is.
+ *
+ * What is left - do error/waiting/running/unknown separate from each other -
+ * remains an open design question about the whole status set, not something
+ * to smuggle in behind an accessibility flag. The default palette's worst
+ * collision among them is 0.03-0.12 dOKLab either way, unchanged by this PR.
+ */
 
 function measure(palette: keyof typeof PALETTES, pair: keyof typeof PAIRS) {
 	const tokens = PALETTES[palette];
@@ -267,29 +270,12 @@ function measure(palette: keyof typeof PALETTES, pair: keyof typeof PAIRS) {
 const USABLE_SEPARATION = 0.2;
 
 /**
- * Success/error is the pair that carries the decision, so it gets the full bar.
- * The remaining stripes still have to be told apart, but confusing "waiting"
- * with "running" costs a glance rather than a wrong conclusion.
+ * Lower bar for stripe-to-stripe distinctions that cost a glance rather than
+ * a wrong conclusion - see CANVAS_EDGE_PAIR above.
  */
 const SIBLING_SEPARATION = 0.15;
 
 describe('status color separation', () => {
-	describe.each(['light', 'dark'] as const)('%s theme, accessible palette', (theme) => {
-		const tokens = PALETTES[`${theme} / accessible`];
-		const siblings = (Object.keys(STRIPE_TOKENS) as Array<keyof typeof STRIPE_TOKENS>).filter(
-			(name) => name !== 'success',
-		);
-
-		it.each(siblings)('separates the success stripe from the %s stripe', (sibling) => {
-			const separation = worstSeparation(
-				resolve_(tokens, STRIPE_TOKENS.success),
-				resolve_(tokens, STRIPE_TOKENS[sibling]),
-			);
-
-			expect(separation).toBeGreaterThan(SIBLING_SEPARATION);
-		});
-	});
-
 	describe.each(['light', 'dark'] as const)('%s theme', (theme) => {
 		it.each(Object.keys(PAIRS) as Array<keyof typeof PAIRS>)(
 			'accessible palette stays distinguishable for the %s pair under every simulated deficiency',
@@ -312,6 +298,16 @@ describe('status color separation', () => {
 				expect(accessible.luminance).toBeGreaterThan(1.25);
 			},
 		);
+
+		it('accessible palette keeps the canvas success/pinned edges apart under every simulated deficiency', () => {
+			const tokens = PALETTES[`${theme} / accessible`];
+			const separation = worstSeparation(
+				resolve_(tokens, CANVAS_EDGE_PAIR[0]),
+				resolve_(tokens, CANVAS_EDGE_PAIR[1]),
+			);
+
+			expect(separation).toBeGreaterThan(SIBLING_SEPARATION);
+		});
 	});
 
 	it.each(['light', 'dark'] as const)(
