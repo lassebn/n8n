@@ -82,7 +82,7 @@
 	--node--color--background: var(--color--background--light-3);
 	--node--color--background--executing: var(--color--primary--tint-3);
 	--node--color--background--executing-1: var(--color--primary--tint-3);
-	--node--border-color--pinned: var(--color--secondary);
+	--node--border-color--pinned: var(--execution-status--color--secondary);
 	--node--border-color--running: var(--color--primary);
 	--node--type-main--color: var(--color--neutral-500);
 
@@ -769,7 +769,7 @@
 	--node--color--background: var(--color--neutral-850);
 	--node--color--background--executing: var(--color--neutral-700);
 	--node--color--background--executing-1: var(--color--neutral-700);
-	--node--border-color--pinned: var(--color--purple-500);
+	--node--border-color--pinned: var(--execution-status--color--secondary);
 	--node--type-main--color: var(--color--neutral-400);
 
 	// Sticky
