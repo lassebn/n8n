@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { EXECUTION_STATUS_ICONS, type IExecutionUIData } from '../../composables/useExecutionHelpers';
+import {
+	EXECUTION_STATUS_ICONS,
+	type IExecutionUIData,
+} from '../../composables/useExecutionHelpers';
 import { EnterpriseEditionFeature, VIEWS } from '@/app/constants';
 import { useInjectWorkflowId } from '@/app/composables/useInjectWorkflowId';
 import ExecutionsTime from '../ExecutionsTime.vue';
@@ -259,31 +262,29 @@ function onRetryMenuItemSelect(action: string): void {
 				var(--execution-list-item--color--background);
 		}
 		.statusIcon {
-			color: var(--color--success);
+			color: var(--execution-status--color--success);
 		}
 	}
 
 	&.new {
 		&,
 		& .executionLink {
-			border-left: var(--spacing--4xs) var(--border-style)
-				var(--execution-status--color--secondary);
+			border-left: var(--spacing--4xs) var(--border-style) var(--execution-status--color--secondary);
 		}
 		.statusLabel,
 		.statusIcon {
-			color: var(--execution-card--color--text--waiting);
+			color: var(--execution-status--color--secondary);
 		}
 	}
 
 	&.waiting {
 		&,
 		& .executionLink {
-			border-left: var(--spacing--4xs) var(--border-style)
-				var(--execution-status--color--secondary);
+			border-left: var(--spacing--4xs) var(--border-style) var(--execution-status--color--secondary);
 		}
 		.statusLabel,
 		.statusIcon {
-			color: var(--color--secondary);
+			color: var(--execution-status--color--secondary);
 		}
 	}
 

@@ -37,7 +37,7 @@ const {
 }
 
 .success {
-	color: var(--color--success);
+	color: var(--execution-status--color--success);
 }
 
 .error {

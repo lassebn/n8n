@@ -3,7 +3,10 @@ import WorkflowExecutionAnnotationPanel from './WorkflowExecutionAnnotationPanel
 import WorkflowExecutionAnnotationTags from './WorkflowExecutionAnnotationTags.ee.vue';
 import ExecutionPreviewHost from './ExecutionPreviewHost.vue';
 import { useExecutionDebugging } from '../../composables/useExecutionDebugging';
-import { EXECUTION_STATUS_ICONS, type IExecutionUIData } from '../../composables/useExecutionHelpers';
+import {
+	EXECUTION_STATUS_ICONS,
+	type IExecutionUIData,
+} from '../../composables/useExecutionHelpers';
 import { useExecutionHelpers } from '../../composables/useExecutionHelpers';
 import type { WorkflowVersion } from '@n8n/rest-api-client/api/workflowHistory';
 import { useI18n } from '@n8n/i18n';
@@ -563,11 +566,11 @@ const onVoteClick = async (voteValue: AnnotationVote) => {
 
 .waiting,
 .new {
-	color: var(--color--secondary);
+	color: var(--execution-status--color--secondary);
 }
 
 .success {
-	color: var(--color--success);
+	color: var(--execution-status--color--success);
 }
 
 .error {
