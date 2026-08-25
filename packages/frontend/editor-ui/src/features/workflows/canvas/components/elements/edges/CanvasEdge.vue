@@ -108,10 +108,11 @@ const connection = computed<Connection>(() =>
 );
 
 const edgeColor = computed(() => {
+	// Not --color--success/--color--secondary - see statusColorSeparation.test.ts.
 	if (status.value === 'success') {
-		return 'var(--color--success)';
+		return 'var(--execution-status--color--success)';
 	} else if (status.value === 'pinned') {
-		return 'var(--color--secondary)';
+		return 'var(--execution-status--color--secondary)';
 	}
 	return undefined;
 });

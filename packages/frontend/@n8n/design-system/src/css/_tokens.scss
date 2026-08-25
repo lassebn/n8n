@@ -82,7 +82,7 @@
 	--node--color--background: var(--color--background--light-3);
 	--node--color--background--executing: var(--color--primary--tint-3);
 	--node--color--background--executing-1: var(--color--primary--tint-3);
-	--node--border-color--pinned: var(--color--secondary);
+	--node--border-color--pinned: var(--execution-status--color--secondary);
 	--node--border-color--running: var(--color--primary);
 	--node--type-main--color: var(--color--neutral-500);
 
@@ -343,9 +343,10 @@
 
 	// Execution
 	--execution-card--border-color--new: var(--color--neutral-250);
-	--execution-card--border-color--success: var(--color--green-300);
-	--execution-card--border-color--error: var(--color--red-300);
-	--execution-card--border-color--waiting: var(--color--purple-300);
+	// Shared with the canvas edge stroke (CanvasEdge.vue).
+	--execution-status--color--success: var(--color--success--tint-1);
+	--execution-card--border-color--error: var(--color--danger--tint-2);
+	--execution-status--color--secondary: var(--color--purple-300);
 	--execution-card--border-color--running: var(--color--gold-200);
 	--execution-card--border-color--unknown: var(--color--neutral-200);
 	--execution-card--color--background: var(--color--foreground--tint-2);
@@ -768,7 +769,7 @@
 	--node--color--background: var(--color--neutral-850);
 	--node--color--background--executing: var(--color--neutral-700);
 	--node--color--background--executing-1: var(--color--neutral-700);
-	--node--border-color--pinned: var(--color--purple-500);
+	--node--border-color--pinned: var(--execution-status--color--secondary);
 	--node--type-main--color: var(--color--neutral-400);
 
 	// Sticky
@@ -1242,6 +1243,44 @@
 		0 15px 45px 0 var(--color--black-alpha-400), 0 5px 10px 0 var(--color--black-alpha-200);
 }
 
+// Color-vision-accessible status palette: success moves from green to blue,
+// danger stays red. Measurements and rationale: statusColorSeparation.test.ts.
+@mixin theme-color-vision-accessible {
+	--color--success--shade-1: var(--color--blue-900);
+	--color--success: var(--color--blue-800);
+	--color--success--tint-1: var(--color--blue-300);
+	--color--success--tint-2: var(--color--blue-200);
+	--color--success--tint-3: var(--color--blue-100);
+	--color--success--tint-4: var(--color--blue-50);
+
+	--background--success: var(--color--blue-50);
+	--border-color--success: var(--color--blue-200);
+	--text-color--success: var(--color--blue-800);
+	--icon-color--success: var(--color--blue-800);
+
+	// Shared with the canvas edge stroke (CanvasEdge.vue), not card-specific.
+	--execution-status--color--success: var(--color--blue-700);
+	--execution-card--border-color--error: var(--color--red-600);
+}
+
+@mixin theme-color-vision-accessible-dark {
+	--color--success--shade-1: var(--color--blue-200);
+	--color--success: var(--color--blue-300);
+	--color--success--tint-1: var(--color--blue-400);
+	--color--success--tint-2: var(--color--blue-800);
+	--color--success--tint-3: var(--color--blue-900);
+	--color--success--tint-4: var(--color--blue-950);
+
+	--background--success: var(--color--blue-950);
+	--border-color--success: var(--color--blue-800);
+	--text-color--success: var(--color--blue-50);
+	--icon-color--success: var(--color--blue-50);
+
+	// Lighter than the light-theme pair since the card ground is dark.
+	--execution-status--color--success: var(--color--blue-500);
+	--execution-card--border-color--error: var(--color--red-600);
+}
+
 :root {
 	color-scheme: light dark;
 	@include theme;
@@ -1264,5 +1303,22 @@ body:not([data-theme]) {
 @media (prefers-color-scheme: dark) {
 	body:not([data-theme]) {
 		@include theme-dark;
+	}
+}
+
+// Must follow the theme blocks: [data-color-vision] and [data-theme] have equal
+// specificity, so source order is what lets the palette win. The paired
+// selectors below are (0,2,x) and so beat both.
+[data-color-vision='accessible'] {
+	@include theme-color-vision-accessible;
+}
+
+[data-theme='dark'][data-color-vision='accessible'] {
+	@include theme-color-vision-accessible-dark;
+}
+
+@media (prefers-color-scheme: dark) {
+	body:not([data-theme])[data-color-vision='accessible'] {
+		@include theme-color-vision-accessible-dark;
 	}
 }

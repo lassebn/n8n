@@ -1,4 +1,9 @@
-import { VIEWS, LOCAL_STORAGE_THEME, LOCAL_STORAGE_SIDEBAR_WIDTH } from '@/app/constants';
+import {
+	VIEWS,
+	LOCAL_STORAGE_THEME,
+	LOCAL_STORAGE_COLOR_VISION,
+	LOCAL_STORAGE_SIDEBAR_WIDTH,
+} from '@/app/constants';
 import { CREDENTIAL_EDIT_MODAL_KEY } from '@/features/credentials/credentials.constants';
 import { DELETE_USER_MODAL_KEY } from '@/features/settings/users/users.constants';
 import {
@@ -19,13 +24,21 @@ import type {
 	ModalState,
 	ModalKey,
 	AppliedThemeOption,
+	ColorVisionOption,
 	TabOptions,
 	INodeUi,
 	NodeCreatorOpenSource,
 } from '@/Interface';
 import { defineStore } from 'pinia';
 import { useSettingsStore } from '@n8n/stores/settings.store';
-import { applyThemeToBody, getThemeOverride, isValidTheme } from './ui.utils';
+import {
+	applyColorVisionToBody,
+	applyThemeToBody,
+	getColorVisionOverride,
+	getThemeOverride,
+	isValidColorVision,
+	isValidTheme,
+} from './ui.utils';
 import { SHELL_MODAL_INITIAL_STATE } from './defaults/modals';
 import { computed, ref, watch } from 'vue';
 import type { IMenuItem } from '@n8n/design-system';
@@ -38,12 +51,22 @@ import { modalRegistry } from '@n8n/frontend-module-sdk';
 import { useTelemetry } from '@n8n/composables/useTelemetry';
 
 let savedTheme: ThemeOption = 'system';
+let savedColorVision: ColorVisionOption = 'default';
 
 try {
 	const value = getThemeOverride();
 	if (value !== null) {
 		savedTheme = value;
 		applyThemeToBody(value);
+	}
+} catch (e) {}
+
+// Applied before the app mounts, like the theme, so the palette does not flicker.
+try {
+	const value = getColorVisionOverride();
+	if (value !== null) {
+		savedColorVision = value;
+		applyColorVisionToBody(value);
 	}
 } catch (e) {}
 
@@ -108,6 +131,17 @@ export const useUIStore = defineStore(STORES.UI, () => {
 			write: identity,
 		},
 	});
+	const colorVision = useLocalStorage<ColorVisionOption>(
+		LOCAL_STORAGE_COLOR_VISION,
+		savedColorVision,
+		{
+			writeDefaults: false,
+			serializer: {
+				read: (value) => (isValidColorVision(value) ? value : savedColorVision),
+				write: identity,
+			},
+		},
+	);
 
 	/** This store instance's copy of the shell catalogue (`ownedCopyOf`). */
 	const shellModalDefaults = ownedCopyOf(SHELL_MODAL_INITIAL_STATE);
@@ -328,6 +362,11 @@ export const useUIStore = defineStore(STORES.UI, () => {
 	const setTheme = (newTheme: ThemeOption): void => {
 		theme.value = newTheme;
 		applyThemeToBody(newTheme);
+	};
+
+	const setColorVision = (newMode: ColorVisionOption): void => {
+		colorVision.value = newMode;
+		applyColorVisionToBody(newMode);
 	};
 
 	/**
@@ -626,6 +665,7 @@ export const useUIStore = defineStore(STORES.UI, () => {
 		sidebarMenuCollapsed,
 		sidebarWidth,
 		theme: computed(() => theme.value),
+		colorVision: computed(() => colorVision.value),
 		modalsById,
 		modalStateById,
 		currentView,
@@ -633,6 +673,7 @@ export const useUIStore = defineStore(STORES.UI, () => {
 		activeModals,
 		isProcessingExecutionResults,
 		setTheme,
+		setColorVision,
 		setModalData,
 		openModalWithData,
 		openModal,

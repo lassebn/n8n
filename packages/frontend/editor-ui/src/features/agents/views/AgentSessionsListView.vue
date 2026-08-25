@@ -540,7 +540,7 @@ async function onFiltersChange(value: AgentSessionFilters) {
 	}
 
 	&[data-status='succeeded'] .titleCell {
-		border-left-color: var(--execution-card--border-color--success);
+		border-left-color: var(--execution-status--color--success);
 	}
 
 	&[data-status='error'] .titleCell {

@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router';
 import { VIEWS } from '@/app/constants';
 import { useTelemetry } from '@n8n/composables/useTelemetry';
 import type { IRunDataDisplayMode } from '@/Interface';
+import type { IconName } from '@n8n/design-system';
 
 export interface IExecutionUIData {
 	name: string;
@@ -15,6 +16,15 @@ export interface IExecutionUIData {
 	showTimestamp: boolean;
 	tags: Array<{ id: string; name: string }>;
 }
+
+/** Keyed on IExecutionUIData['name']; 'running' shows a spinner instead. */
+export const EXECUTION_STATUS_ICONS: Record<string, IconName> = {
+	success: 'status-completed',
+	error: 'status-error',
+	waiting: 'status-waiting',
+	new: 'status-new',
+	unknown: 'status-unknown',
+};
 
 export function useExecutionHelpers() {
 	const i18n = useI18n();

@@ -443,7 +443,10 @@ watch(
 }
 
 .success::after {
-	border-color: var(--color-canvas-node-success-border-color, var(--color--success));
+	border-color: var(
+		--color-canvas-node-success-border-color,
+		var(--execution-status--color--success)
+	);
 }
 
 .error::after {

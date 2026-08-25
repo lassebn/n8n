@@ -165,11 +165,11 @@ const groupedExecutionErrors = computed(() => {
 }
 
 .waiting {
-	color: var(--color--secondary);
+	color: var(--execution-status--color--secondary);
 }
 
 .pinnedData {
-	color: var(--color--secondary);
+	color: var(--execution-status--color--secondary);
 }
 
 .running {

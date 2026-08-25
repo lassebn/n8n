@@ -3,7 +3,10 @@ import WorkflowExecutionAnnotationPanel from './WorkflowExecutionAnnotationPanel
 import WorkflowExecutionAnnotationTags from './WorkflowExecutionAnnotationTags.ee.vue';
 import ExecutionPreviewHost from './ExecutionPreviewHost.vue';
 import { useExecutionDebugging } from '../../composables/useExecutionDebugging';
-import type { IExecutionUIData } from '../../composables/useExecutionHelpers';
+import {
+	EXECUTION_STATUS_ICONS,
+	type IExecutionUIData,
+} from '../../composables/useExecutionHelpers';
 import { useExecutionHelpers } from '../../composables/useExecutionHelpers';
 import type { WorkflowVersion } from '@n8n/rest-api-client/api/workflowHistory';
 import { useI18n } from '@n8n/i18n';
@@ -25,7 +28,15 @@ import { useWorkflowHistoryStore } from '@/features/workflows/workflowHistory/wo
 import { useAddExecutionToDataset } from '@/features/ai/evaluation.ee/composables/useAddExecutionToDataset';
 
 import { ElDropdown, ElDropdownItem, ElDropdownMenu } from 'element-plus';
-import { N8nButton, N8nIconButton, N8nSpinner, N8nText, N8nTooltip } from '@n8n/design-system';
+import type { IconName } from '@n8n/design-system';
+import {
+	N8nButton,
+	N8nIcon,
+	N8nIconButton,
+	N8nSpinner,
+	N8nText,
+	N8nTooltip,
+} from '@n8n/design-system';
 import VoteButtons from './VoteButtons.vue';
 
 type RetryDropdownRef = InstanceType<typeof ElDropdown>;
@@ -59,6 +70,9 @@ const executionId = computed(() => route.params.executionId as string);
 const nodeId = computed(() => route.params.nodeId as string);
 const executionUIDetails = computed<IExecutionUIData | null>(() =>
 	props.execution ? executionHelpers.getUIDetails(props.execution) : null,
+);
+const statusIcon = computed<IconName | undefined>(() =>
+	executionUIDetails.value ? EXECUTION_STATUS_ICONS[executionUIDetails.value.name] : undefined,
 );
 const debugButtonData = computed(() =>
 	props.execution?.status === 'success'
@@ -311,6 +325,14 @@ const onVoteClick = async (voteValue: AnnotationVote) => {
 						size="small"
 						:class="[$style.spinner, 'mr-4xs']"
 					/>
+					<N8nIcon
+						v-else-if="statusIcon"
+						:icon="statusIcon"
+						size="medium"
+						:class="[$style.statusIcon, $style[executionUIDetails.name], 'mr-4xs']"
+						aria-hidden="true"
+						data-test-id="execution-preview-status-icon"
+					/>
 					<N8nText
 						size="medium"
 						:class="[$style.status, $style[executionUIDetails.name]]"
@@ -531,21 +553,32 @@ const onVoteClick = async (voteValue: AnnotationVote) => {
 	}
 }
 
+.statusIcon {
+	flex-shrink: 0;
+	position: relative;
+	top: 1px;
+}
+
 .running,
 .spinner {
 	color: var(--color--warning);
 }
 
-.waiting {
-	color: var(--color--secondary);
+.waiting,
+.new {
+	color: var(--execution-status--color--secondary);
 }
 
 .success {
-	color: var(--color--success);
+	color: var(--execution-status--color--success);
 }
 
 .error {
 	color: var(--color--danger);
+}
+
+.unknown {
+	color: var(--color--text--tint-1);
 }
 
 .newInfo,

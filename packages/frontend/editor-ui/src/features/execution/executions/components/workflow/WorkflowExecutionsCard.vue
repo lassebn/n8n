@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import type { IExecutionUIData } from '../../composables/useExecutionHelpers';
+import {
+	EXECUTION_STATUS_ICONS,
+	type IExecutionUIData,
+} from '../../composables/useExecutionHelpers';
 import { EnterpriseEditionFeature, VIEWS } from '@/app/constants';
 import { useInjectWorkflowId } from '@/app/composables/useInjectWorkflowId';
 import ExecutionsTime from '../ExecutionsTime.vue';
@@ -12,6 +15,7 @@ import type { PermissionsRecord } from '@n8n/permissions';
 import { useSettingsStore } from '@n8n/stores/settings.store';
 import { toDayMonth, toTime } from '@/app/utils/formatters/dateFormatter';
 import PrivateCredentialIcon from '@/features/resolvers/components/PrivateCredentialIcon.vue';
+import type { IconName } from '@n8n/design-system';
 import {
 	N8nActionDropdown,
 	N8nIcon,
@@ -59,6 +63,10 @@ const retryExecutionActions = computed(() => [
 const executionUIDetails = computed<IExecutionUIData>(() =>
 	executionHelpers.getUIDetails(props.execution),
 );
+const statusIcon = computed<IconName | undefined>(
+	() => EXECUTION_STATUS_ICONS[executionUIDetails.value.name],
+);
+
 const isActive = computed(() => props.execution.id === route.params.executionId);
 const isRetriable = computed(() => executionHelpers.isExecutionRetriable(props.execution));
 
@@ -110,6 +118,14 @@ function onRetryMenuItemSelect(action: string): void {
 						v-if="executionUIDetails.name === 'running'"
 						size="small"
 						:class="[$style.spinner, 'mr-4xs']"
+					/>
+					<N8nIcon
+						v-else-if="statusIcon"
+						:icon="statusIcon"
+						size="small"
+						:class="[$style.statusIcon, 'mr-4xs']"
+						aria-hidden="true"
+						data-test-id="execution-card-status-icon"
 					/>
 					<N8nText :class="$style.statusLabel" size="small">{{ executionUIDetails.label }}</N8nText>
 					{{ ' ' }}
@@ -237,33 +253,38 @@ function onRetryMenuItemSelect(action: string): void {
 		}
 	}
 
+	// No stripe for success - the expected outcome stays unmarked, matching
+	// GlobalExecutionsListItem.vue's error-only background highlight.
 	&.success {
 		&,
 		& .executionLink {
 			border-left: var(--spacing--4xs) var(--border-style)
-				var(--execution-card--border-color--success);
+				var(--execution-list-item--color--background);
+		}
+		.statusIcon {
+			color: var(--execution-status--color--success);
 		}
 	}
 
 	&.new {
 		&,
 		& .executionLink {
-			border-left: var(--spacing--4xs) var(--border-style)
-				var(--execution-card--border-color--waiting);
+			border-left: var(--spacing--4xs) var(--border-style) var(--execution-status--color--secondary);
 		}
-		.statusLabel {
-			color: var(--execution-card--color--text--waiting);
+		.statusLabel,
+		.statusIcon {
+			color: var(--execution-status--color--secondary);
 		}
 	}
 
 	&.waiting {
 		&,
 		& .executionLink {
-			border-left: var(--spacing--4xs) var(--border-style)
-				var(--execution-card--border-color--waiting);
+			border-left: var(--spacing--4xs) var(--border-style) var(--execution-status--color--secondary);
 		}
-		.statusLabel {
-			color: var(--color--secondary);
+		.statusLabel,
+		.statusIcon {
+			color: var(--execution-status--color--secondary);
 		}
 	}
 
@@ -273,7 +294,8 @@ function onRetryMenuItemSelect(action: string): void {
 			border-left: var(--spacing--4xs) var(--border-style)
 				var(--execution-card--border-color--error);
 		}
-		.statusLabel {
+		.statusLabel,
+		.statusIcon {
 			color: var(--color--danger);
 		}
 	}
@@ -284,6 +306,15 @@ function onRetryMenuItemSelect(action: string): void {
 			border-left: var(--spacing--4xs) var(--border-style)
 				var(--execution-card--border-color--unknown);
 		}
+		.statusIcon {
+			color: var(--color--text--tint-1);
+		}
+	}
+
+	.statusIcon {
+		flex-shrink: 0;
+		position: relative;
+		top: 1px;
 	}
 
 	.annotation {
